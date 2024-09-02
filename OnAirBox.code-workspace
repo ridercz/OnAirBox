@@ -5,10 +5,6 @@
 			"path": "."
 		},
 		{
-			"name": "Box",
-			"path": "Box"
-		},
-		{
 			"name": "Firmware",
 			"path": "Firmware"
 		}
