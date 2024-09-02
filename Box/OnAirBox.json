@@ -1,0 +1,52 @@
+{
+    "parameterSets": {
+        "MASTER": {
+            "$fn": "32",
+            "$fudge": "1",
+            "corner_radius": "3",
+            "face_thickness": "1",
+            "inner_size": "[100, 35, 25]",
+            "lid_thickness": "2",
+            "main_hole_diameter": "16",
+            "main_hole_lip_height": "0",
+            "main_hole_lip_thickness": "0",
+            "text_face_extr": "0.4",
+            "text_face_font": "Arial:bold",
+            "text_face_offset": "-6",
+            "text_face_size": "12",
+            "text_face_string": "ON AIR",
+            "text_lid_extr": "0.4",
+            "text_lid_font": "Arial:bold",
+            "text_lid_size": "6",
+            "text_lid_string": "[\"MASTER\/R02\", \"RIDER.CZ 2024\"]",
+            "usb_height": "8",
+            "usb_offset_y": "0",
+            "usb_width": "10"
+        },
+        "SLAVE": {
+            "$fn": "32",
+            "$fudge": "1",
+            "corner_radius": "3",
+            "face_thickness": "1",
+            "inner_size": "[100, 35, 15]",
+            "lid_thickness": "2",
+            "main_hole_diameter": "10",
+            "main_hole_lip_height": "8",
+            "main_hole_lip_thickness": "0.86",
+            "text_face_extr": "0.4",
+            "text_face_font": "Arial:bold",
+            "text_face_offset": "-6",
+            "text_face_size": "12",
+            "text_face_string": "ON AIR",
+            "text_lid_extr": "0.4",
+            "text_lid_font": "Arial:bold",
+            "text_lid_size": "6",
+            "text_lid_string": "[\"SLAVE\/R03\", \"RIDER.CZ 2024\"]",
+            "usb_height": "8",
+            "usb_offset_y": "0",
+            "usb_width": "12"
+        }
+    },
+    "fileFormatVersion": "1",
+    "parameterSets": ""
+}
