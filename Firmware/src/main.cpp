@@ -33,6 +33,8 @@
 // MQTT connection options
 #define MQTT_SERVER "mqtt.boxlab.lazyhorse.net"
 #define MQTT_PORT 8883
+#define MQTT_USERNAME ""
+#define MQTT_PASSWORD ""
 #define MQTT_TOPIC_STATUS "onair/status"
 #define MQTT_TOPIC_ARRIVE "onair/arrive"
 #define MQTT_TOPIC_DEPART "onair/depart"
@@ -103,7 +105,7 @@ void ensureMqttConnected()
     Serial.printf("Connecting to %s:%d...", MQTT_SERVER, MQTT_PORT);
     auto clientId = WiFi.macAddress();
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-    if (mqttClient.connect(clientId.c_str(), MQTT_TOPIC_DEPART, 0, false, clientId.c_str()))
+    if (mqttClient.connect(clientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD, MQTT_TOPIC_DEPART, 0, false, clientId.c_str()))
     {
       Serial.println("OK");
 
