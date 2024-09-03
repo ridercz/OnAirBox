@@ -35,6 +35,7 @@
 #define MQTT_PORT 8883
 #define MQTT_USERNAME ""
 #define MQTT_PASSWORD ""
+#define MQTT_SERVER_TLS
 #define MQTT_TOPIC_STATUS "onair/status"
 #define MQTT_TOPIC_ARRIVE "onair/arrive"
 #define MQTT_TOPIC_DEPART "onair/depart"
@@ -52,15 +53,11 @@
 #define REBOOT_INTERVAL 97200000 // ms; preventive reboot interval (27 hours)
 
 /* Global variables *************************************************************************************************/
-
-WiFiClientSecure wifiClient;
-PubSubClient mqttClient(wifiClient);
-bool isOnAir = false;
-unsigned long lastMessageReceived = 0;
-unsigned long lastLedToggle = 0;
-bool lastLedState = false;
-bool lastButtonState = false;
-unsigned long lastMessageSent = 0;
+#ifdef MQTT_SERVER_TLS
+WiFiClientSecure wifiClient; // WiFi client with TLS
+#else
+WiFiClient wifiClient; // WiFi client without TLS
+#endif
 
 /* Helper methods ***************************************************************************************************/
 
