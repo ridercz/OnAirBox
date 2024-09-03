@@ -27,19 +27,19 @@
 /* Configuration - change to fit your needs *************************************************************************/
 
 // WiFi connection options
-#define WIFI_SSID "boxlab.lazyhorse.net"
-#define WIFI_PASS "IHaveHorsePower!"
+#define WIFI_SSID "boxlab.lazyhorse.net" // WiFi network SSID
+#define WIFI_PASS "IHaveHorsePower!"     // WiFi network password
 
 // MQTT connection options
-#define MQTT_SERVER "mqtt.boxlab.lazyhorse.net"
-#define MQTT_PORT 8883
-#define MQTT_USERNAME ""
-#define MQTT_PASSWORD ""
-#define MQTT_SERVER_TLS
-#define MQTT_TOPIC_STATUS "onair/status"
-#define MQTT_TOPIC_ARRIVE "onair/arrive"
-#define MQTT_TOPIC_DEPART "onair/depart"
-#define MQTT_RECONNECT_DELAY 1000
+#define MQTT_SERVER "mqtt.boxlab.lazyhorse.net" // MQTT server address
+#define MQTT_PORT 8883                          // MQTT server port
+#define MQTT_USERNAME ""                        // MQTT username - set to "" if not used
+#define MQTT_PASSWORD ""                        // MQTT password - set to "" if not used
+#define MQTT_SERVER_TLS                         // Remove if server does not use TLS
+#define MQTT_TOPIC_STATUS "onair/status"        // MQTT topic for status change messages
+#define MQTT_TOPIC_ARRIVE "onair/arrive"        // MQTT topic for arrival messages (when device connects)
+#define MQTT_TOPIC_DEPART "onair/depart"        // MQTT topic for departure messages (when device disconnects)
+#define MQTT_RECONNECT_DELAY 30000              // ms; delay between reconnection attempts
 
 /* Internal configuration - do not change unless you know what you are doing *****************************************/
 
@@ -85,11 +85,11 @@ void ensureWifiConnected()
   // Connect to WiFi
   if (firstWiFiConnection)
   {
-    Serial.println("Connecting to " WIFI_SSID "...");
+    Serial.print("Connecting to " WIFI_SSID "...");
   }
   else
   {
-    Serial.println("Reconnecting to " WIFI_SSID "...");
+    Serial.print("Reconnecting to " WIFI_SSID "...");
   }
   firstWiFiConnection = false;
   WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -256,8 +256,10 @@ void setup()
   lastButtonState = !digitalRead(BUTTON_PIN);
 #endif
 
+#ifdef MQTT_SERVER_TLS
   // Disable TLS server certificate verification
   wifiClient.setInsecure();
+#endif
 
   // Set MQTT client callback
   mqttClient.setCallback(mqttCallback);
@@ -312,7 +314,6 @@ void loop()
     lastMessageSent = millis();
     Serial.println(result ? "OK" : "Failed!");
   }
-
 #endif
 
   // Handle MQTT messages
