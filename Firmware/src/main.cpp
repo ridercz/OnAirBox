@@ -48,9 +48,10 @@
 #define LED_INTERVAL 1000        // ms; LED blink interval
 #define LED_TTL 30000            // ms; repeat interval for "on air" messages
 #define LED_TIMEOUT 70000        // ms; timeout after which the LED is turned off, if no message is received, must be greater than LED_TTL
-//#define BUTTON_PIN 33            // Button pin
+#define BUTTON_PIN 33            // Button pin
 #define BUTTON_DEBOUNCE 50       // ms; button debounce time
 #define REBOOT_INTERVAL 97200000 // ms; preventive reboot interval (27 hours)
+#define WIFI_TIMEOUT 60000       // ms; device will reboot when it cannot connect to WiFi for this time
 
 /* Global variables *************************************************************************************************/
 #ifdef MQTT_SERVER_TLS
@@ -58,6 +59,16 @@ WiFiClientSecure wifiClient; // WiFi client with TLS
 #else
 WiFiClient wifiClient; // WiFi client without TLS
 #endif
+PubSubClient mqttClient(wifiClient);   // MQTT client instance
+unsigned long lastMessageReceived = 0; // Last message received millis (used to detect mqtt timeout)
+unsigned long lastLedToggle = 0;       // Last LED toggle millis (used to blink LED)
+unsigned long lastMessageSent = 0;     // Last message sent millis (used to prevent mqtt timeout)
+unsigned long lastWifiConnection = 0;  // Last WiFi connection start millis (used to detect connection timeout)
+bool isOnAir = false;                  // On-Air status
+bool lastLedState = false;             // Last LED blink state (used to toggle LED)
+bool lastButtonState = false;          // Last button press state (used to toggle state)
+bool firstWiFiConnection = true;       // First WiFi connection flag
+bool firstMqttConnection = true;       // First MQTT connection flag
 
 /* Helper methods ***************************************************************************************************/
 
@@ -72,12 +83,28 @@ void ensureWifiConnected()
   digitalWrite(LED_PIN, HIGH);
 
   // Connect to WiFi
-  Serial.print("Connecting to " WIFI_SSID "...");
+  if (firstWiFiConnection)
+  {
+    Serial.println("Connecting to " WIFI_SSID "...");
+  }
+  else
+  {
+    Serial.println("Reconnecting to " WIFI_SSID "...");
+  }
+  firstWiFiConnection = false;
   WiFi.begin(WIFI_SSID, WIFI_PASS);
+  lastWifiConnection = millis();
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
     Serial.print(".");
+
+    // If we cannot connect to WiFi for a long time, reboot
+    if (millis() - lastWifiConnection > WIFI_TIMEOUT)
+    {
+      Serial.println("\nWiFi connection timeout, rebooting...");
+      ESP.restart();
+    }
   }
   Serial.println("OK");
   Serial.print("IP: ");
@@ -87,7 +114,7 @@ void ensureWifiConnected()
 // This method ensures that the device is connected to WiFi and MQTT server
 void ensureMqttConnected()
 {
-  while (!mqttClient.connected())
+  while (mqttClient.state() != MQTT_CONNECTED)
   {
     // First, ensure we are connected to WiFi
     ensureWifiConnected();
@@ -95,8 +122,46 @@ void ensureMqttConnected()
     // Turn LED on
     digitalWrite(LED_PIN, HIGH);
 
-    // Print current connection state
-    Serial.printf("MQTT connection state: %d\n", mqttClient.state());
+    // If it's not first connection attempt, print the current state and wait for a while
+    if (!firstMqttConnection)
+    {
+      switch (mqttClient.state())
+      {
+      case MQTT_CONNECTION_TIMEOUT:
+        Serial.println("MQTT connection state: timeout (server didn't respond)");
+        break;
+      case MQTT_CONNECTION_LOST:
+        Serial.println("MQTT connection state: connection lost (server disconnected)");
+        break;
+      case MQTT_CONNECT_FAILED:
+        Serial.println("MQTT connection state: connection failed (server didn't accept the connection)");
+        break;
+      case MQTT_DISCONNECTED:
+        Serial.println("MQTT connection state: disconnected");
+        break;
+      case MQTT_CONNECT_BAD_PROTOCOL:
+        Serial.println("MQTT connection state: bad protocol (unsupoorted version)");
+        break;
+      case MQTT_CONNECT_BAD_CLIENT_ID:
+        Serial.println("MQTT connection state: bad client ID (server rejected client ID)");
+        break;
+      case MQTT_CONNECT_UNAVAILABLE:
+        Serial.println("MQTT connection state: unavailable (server was unable to accept connection)");
+        break;
+      case MQTT_CONNECT_BAD_CREDENTIALS:
+        Serial.println("MQTT connection state: bad credentials");
+        break;
+      case MQTT_CONNECT_UNAUTHORIZED:
+        Serial.println("MQTT connection state: unauthorized");
+        break;
+      default:
+        Serial.printf("MQTT connection state: %d (unknown)\n", mqttClient.state());
+        break;
+      }
+      Serial.printf("Waiting %d ms before next connection attempt...\n", MQTT_RECONNECT_DELAY);
+      delay(MQTT_RECONNECT_DELAY);
+    }
+    firstMqttConnection = false;
 
     // Connect to MQTT server
     Serial.printf("Connecting to %s:%d...", MQTT_SERVER, MQTT_PORT);
@@ -132,11 +197,6 @@ void ensureMqttConnected()
     {
       // Connection failed
       Serial.println("Failed!");
-      Serial.print("Status code: ");
-      Serial.println(mqttClient.state());
-
-      // Wait for a while and try again
-      delay(MQTT_RECONNECT_DELAY);
     }
   }
 }
