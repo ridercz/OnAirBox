@@ -52,6 +52,7 @@
 #define BUTTON_DEBOUNCE 50       // ms; button debounce time
 #define REBOOT_INTERVAL 97200000 // ms; preventive reboot interval (27 hours)
 #define WIFI_TIMEOUT 60000       // ms; device will reboot when it cannot connect to WiFi for this time
+#define LOOP_SLEEP 100           // ms; loop sleep time
 
 /* Global variables *************************************************************************************************/
 #ifdef MQTT_SERVER_TLS
@@ -346,4 +347,9 @@ void loop()
     // Turn off LED
     digitalWrite(LED_PIN, LOW);
   }
+
+#ifdef LOOP_SLEEP
+  // Sleep for a while
+  delay(LOOP_SLEEP);
+#endif
 }
